@@ -1,25 +1,39 @@
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
+import re
 
+# Web Scrapping the Football stadium data on Wikipedia
 def fetch_stadium_data():
     url = "https://en.wikipedia.org/wiki/List_of_association_football_stadiums_by_capacity"
-    tables = pd.read_html(url, match='Football stadiums by capacity')
+    tables = pd.read_html(url)
 
     if not tables:
         print("No tables found")
         return pd.DataFrame()
 
-    # Assuming the first table is the one we need
-    df = tables[0]
+    # Getting the 3rd table as this is the data we want to web scrape using pandas
+    df = tables[2]
 
-    # Rename columns for clarity
-    df.columns = ['Rank', 'Stadium', 'Seating Capacity', 'Region', 'Country', 'City', 'Image', 'Home Teams']
 
-    # Drop the 'Image' column as it's not needed
-    df = df.drop(columns=['Image'])
+    # Extract columns 
+    df_extract = df[['Stadium', 'Seating capacity', 'Region', 'Country', 'City', 'Images', 'Home team(s)']]
 
-    return df
+    #Rename columns for clarity
+    df_extract.columns = ['Stadium', 'Seating Capacity', 'Region', 'Country', 'City', 'Image', 'Home Teams']
+    df_extract['Stadium']= df_extract['Stadium'].str.strip('♦')
+    
+    # Function to clean the Seating Capacity column
+    def clean_seating_capacity(value):
+    # Remove square brackets and the numbers inside them
+        value = re.sub(r'\[\d+\]', '', value)
+        # Remove commas
+        value = value.replace(',', '')
+        return value
+    df_extract['Seating Capacity'] = df_extract['Seating Capacity'].apply(clean_seating_capacity)
+    print(df_extract)
+
+    return df_extract
 
 df = fetch_stadium_data()
 if not df.empty:
