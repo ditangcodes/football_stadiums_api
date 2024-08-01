@@ -16,8 +16,7 @@ def fetch_stadium_data():
 
     # Getting the 3rd table as this is the data we want to web scrape using pandas
     df = tables[2]
-
-
+    
     # Extract columns 
     df_extract = df[['Stadium', 'Seating capacity', 'Region', 'Country', 'City', 'Images', 'Home team(s)']]
 
