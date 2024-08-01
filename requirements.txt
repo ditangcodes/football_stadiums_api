@@ -1,8 +1,8 @@
 bs4
 pandas
-csv
 html5lib
 lxml
 sqlalchemy
 requests
 re
+geopy

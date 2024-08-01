@@ -2,6 +2,8 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 import re
+from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 
 # Web Scrapping the Football stadium data on Wikipedia
 def fetch_stadium_data():
@@ -33,6 +35,23 @@ def fetch_stadium_data():
     df_extract['Seating Capacity'] = df_extract['Seating Capacity'].apply(clean_seating_capacity)
     print(df_extract)
 
+    # Initialize geolocator
+    geolocator = Nominatim(user_agent="stadium_locator")
+    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    
+    # Function to get latitude and longitude
+    def get_coordinates(city, country):
+        try:
+            location = geocode(f"{city}, {country}")
+            return location.latitude, location.longitude
+        except:
+            return None, None
+    # Apply the function to get coordinates
+    df_extract['Latitude'], df_extract['Longitude'] = zip(*df_extract.apply(lambda row: get_coordinates(row['City'], row['Country']), axis=1))
+        # Drop rows with missing coordinates
+    df_extract = df_extract.dropna(subset=['Latitude', 'Longitude'])
+
+    print(df_extract)   
     return df_extract
 
 df = fetch_stadium_data()
