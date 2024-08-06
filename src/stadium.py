@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import re
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
+import geohash
 
 # Web Scrapping the Football stadium data on Wikipedia
 def fetch_stadium_data():
@@ -47,8 +48,15 @@ def fetch_stadium_data():
             return None, None
     # Apply the function to get coordinates
     df_extract['Latitude'], df_extract['Longitude'] = zip(*df_extract.apply(lambda row: get_coordinates(row['City'], row['Country']), axis=1))
-        # Drop rows with missing coordinates
+    # Drop rows with missing coordinates
     df_extract = df_extract.dropna(subset=['Latitude', 'Longitude'])
+
+    # Function to get geohash
+    def get_geohash(lat, lon):
+        return geohash.encode(lat, lon)
+    
+    # Apply the function to get geohash
+    df_extract['Geohash'] = df_extract.apply(lambda row: get_geohash(row['Latitude'], row['Longitude']), axis=1)
 
     print(df_extract)   
     return df_extract
